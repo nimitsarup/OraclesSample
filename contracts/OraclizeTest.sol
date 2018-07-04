@@ -7,9 +7,13 @@ contract OraclizeTest is usingOraclize {
     string public ETHUSD;
 
     bytes32 ethQueryId;
+    bytes32 weatherQueryId;
+    bytes32 exchRateQueryId;
 
     event LogInfo(string description);
     event LogPriceUpdate(string price);
+    event LogWeatherUpdate(string price);
+    event LogExchRateUpdate(string price);
     event LogUpdate(address indexed _owner, uint indexed _balance);
 
     // Constructor
@@ -24,7 +28,6 @@ contract OraclizeTest is usingOraclize {
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
         oraclize_setProof(proofType_TLSNotary | proofStorage_IPFS);
-        update();
     }
 
     // Fallback function
@@ -46,16 +49,21 @@ contract OraclizeTest is usingOraclize {
         require(msg.sender == oraclize_cbAddress());
 
         if(ethQueryId == id) {
-            ETHUSD = result;
-            emit LogPriceUpdate(ETHUSD);
-            updateETH();
+            emit LogPriceUpdate(result);
+        }
+
+        if(weatherQueryId == id) {
+            emit LogWeatherUpdate(result);
+        }
+
+        if(exchRateQueryId == id) {
+            emit LogExchRateUpdate(result);
         }
     }
 
     function updateETH()
     payable
     public {
-        emit LogInfo("update");
         // Check if we have enough remaining funds
         if (oraclize_getPrice("URL") > address(this).balance) {
             emit LogInfo("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
@@ -64,6 +72,34 @@ contract OraclizeTest is usingOraclize {
 
             // Using XPath to to fetch the right element in the JSON response
             ethQueryId = oraclize_query(20, "URL", "json(https://api.coinbase.com/v2/prices/ETH-USD/spot).data.amount");
+        }
+    }
+
+    function updateWeather()
+    payable
+    public {
+        // Check if we have enough remaining funds
+        if (oraclize_getPrice("URL") > address(this).balance) {
+            emit LogInfo("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
+        } else {
+            emit LogInfo("Oraclize query was sent, standing by for the answer..");
+
+            // Using XPath to to fetch the right element in the JSON response
+            weatherQueryId = oraclize_query(20, "URL", "json(http://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=858ac6bf091c34a606c2f3e881951295).main");
+        }
+    }
+
+    function updateExchRate()
+    payable
+    public {
+        // Check if we have enough remaining funds
+        if (oraclize_getPrice("URL") > address(this).balance) {
+            emit LogInfo("Oraclize query was NOT sent, please add some ETH to cover for the query fee");
+        } else {
+            emit LogInfo("Oraclize query was sent, standing by for the answer..");
+
+            // Using XPath to to fetch the right element in the JSON response
+            exchRateQueryId = oraclize_query(20, "URL", "json(http://data.fixer.io/api/latest?access_key=d767581739b8def11666ac8528b927db&symbols=GBP,EUR).rates.GBP");
         }
     }
 
