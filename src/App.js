@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import OracleContract from '../build/contracts/OraclizeTest.json'
 import getWeb3 from './utils/getWeb3'
-import { Button, Segment } from "semantic-ui-react";
+import { Button, Segment, Card, Label, Icon } from "semantic-ui-react";
 
 import './css/oswald.css'
 import './css/open-sans.css'
@@ -12,13 +12,18 @@ var theContractInstance;
 var allAccounts;
 
 class App extends Component {
-  constructor(props) {
-    super(props)
 
-    this.state = {
-      ETHUSD: 0,
-      web3: null
-    }
+  constructor(props) {
+    super(props);
+
+    this.state = { ETHUSD: 0, 
+      web3: null, 
+      loadingETH: false, 
+      Weather: '', 
+      loadingWeather: false,
+      ExchRate: '',
+      loadingExchRate: false
+    };
   }
 
   componentWillMount() {
@@ -27,16 +32,14 @@ class App extends Component {
 
     getWeb3
     .then(results => {
-      this.setState({
-        web3: results.web3
-      })
+      this.setState({ web3: results.web3 });
 
       // Instantiate contract once web3 provided.
-      this.instantiateContract()
+      this.instantiateContract();
     })
     .catch(() => {
       console.log('Error finding web3.')
-    })
+    });
   }
 
   instantiateContract() {
@@ -68,18 +71,44 @@ class App extends Component {
 
   }
 
-  addEventListeners(instance) {
+  addEventListeners = (instance) => {
     var LogCreated = instance.LogUpdate({},{fromBlock: 0, toBlock: 'latest'});
     var LogPriceUpdate = instance.LogPriceUpdate({},{fromBlock: 0, toBlock: 'latest'});
     var LogInfo = instance.LogInfo({},{fromBlock: 0, toBlock: 'latest'});
 
-    //
+    var LogWeatherUpdate = instance.LogWeatherUpdate({},{fromBlock: 0, toBlock: 'latest'});
+    var LogExchRateUpdate = instance.LogExchRateUpdate({},{fromBlock: 0, toBlock: 'latest'});
+
+    let currComp = this;
+
     LogPriceUpdate.watch(function(err, result){
       if(!err){
-        console.log("Nimit ---> " + result.args.price);
+        console.log("ETHUSD ---> " + result.args.price);        
       }else{
-        console.log("Nimit --ERR--> " + err);
+        console.log("ETHUSD --ERR--> " + err);
       }
+
+      currComp.setState({ ETHUSD: result.args.price, loadingETH: false });
+    });
+
+    LogExchRateUpdate.watch(function(err, result){
+      if(!err){
+        console.log("EXCHRATE ---> " + result.args.price);        
+      }else{
+        console.log("EXCHRATE --ERR--> " + err);
+      }
+
+      currComp.setState({ ExchRate: result.args.price, loadingExchRate: false });
+    });
+
+    LogWeatherUpdate.watch(function(err, result){
+      if(!err){
+        console.log("Weather ---> " + JSON.stringify(result.args.price));        
+      }else{
+        console.log("Weather --ERR--> " + err);
+      }
+
+      currComp.setState({ Weather: JSON.parse(result.args.price), loadingWeather: false });
     });
 
     // Emitted when the Contract's constructor is run
@@ -104,9 +133,18 @@ class App extends Component {
   }
 
   getETHUSD = () => {
-    //theContractInstance.getBalance.call({from: allAccounts[0]}).then((retVal) => console.log(retVal.toNumber()));
-    theContractInstance.update.call({ from: allAccounts[0], gas:6721975, value: 500000000000000000 })
-    .then(data => console.log(data));
+    this.setState({loadingETH: true});
+    theContractInstance.updateETH.sendTransaction({ from: allAccounts[0], gas:6721975, value: 5000000 });
+  }
+
+  getWeather = () => {
+    this.setState({loadingWeather: true});
+    theContractInstance.updateWeather.sendTransaction({ from: allAccounts[0], gas:6721975, value: 5000000 });
+  }
+
+  getExchRate = () => {
+    this.setState({loadingExchRate: true});
+    theContractInstance.updateExchRate.sendTransaction({ from: allAccounts[0], gas:6721975, value: 5000000 });
   }
 
   render() {
@@ -117,12 +155,67 @@ class App extends Component {
         </nav>
 
         <main className="container">
-        <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css"/>
           <div className="pure-g">
             <div className="pure-u-1-1">
+
             <Segment>
-              <Button content="ETH USD" icon="cloud download" primary="true" floated='right' onClick={this.getETHUSD}/>
-              <h2>Get Crypto Price</h2> 
+              <Button content="Get Price" 
+                      icon="ethereum" 
+                      primary='true'
+                      floated='right' 
+                      attached='bottom' 
+                      loading={this.state.loadingETH}
+                      onClick={this.getETHUSD}/>
+              <Card>
+                <Card.Content>
+                  <Card.Header>ETH-USD Spot Price</Card.Header>
+                    <Card.Description>
+                      <Label as='a' size='big' color='red'>
+                        <Icon name='ethereum' />$ {this.state.ETHUSD}
+                      </Label>
+                  </Card.Description>
+                </Card.Content>
+            </Card>
+            </Segment>
+
+            <Segment>
+              <Button content="Get London Weather" 
+                      icon="rain" 
+                      primary='true'
+                      floated='right' 
+                      attached='bottom' 
+                      loading={this.state.loadingWeather}
+                      onClick={this.getWeather}/>
+              <Card>
+                <Card.Content>
+                  <Card.Header>London Weather Today</Card.Header>
+                    <Card.Description>
+                      <Label as='a' size='big' color='red'>
+                        <Icon name='umbrella' />{this.state.Weather.temp} K, {this.state.Weather.pressure} mb
+                      </Label>
+                  </Card.Description>
+                </Card.Content>
+            </Card>
+            </Segment>
+
+            <Segment>
+              <Button content="Get Rate" 
+                      icon="exchange" 
+                      primary='true'
+                      floated='right' 
+                      attached='bottom' 
+                      loading={this.state.loadingExchRate}
+                      onClick={this.getExchRate}/>
+              <Card>
+                <Card.Content>
+                  <Card.Header>GBP-EUR exchange rate</Card.Header>
+                    <Card.Description>
+                      <Label as='a' size='big' color='red'>
+                        <Icon name='exchange' />{this.state.ExchRate}
+                      </Label>
+                  </Card.Description>
+                </Card.Content>
+            </Card>
             </Segment>
             
             </div>
