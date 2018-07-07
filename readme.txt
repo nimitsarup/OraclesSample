@@ -1,10 +1,16 @@
-truffle develop
+Steps to run project:
+1. npm install
 
-node bridge -a 9 -H 127.0.0.1 -p 9545 --dev
-(OAR = from the above !!!)
+Need 4 terminals:
+1. Run testrpc
+   truffle develop
+2. Run Ethereum-Bridge
+   node bridge -a 9 -H 127.0.0.1 -p 9545 --dev
+   (OAR = from the above goes into the contract - should not be different ideally !!!)
 
-truffle compile;truffle migrate --develop --reset
+3. Compile and install the contract
+   truffle compile;truffle migrate --develop --reset
 
-
-npm run start
+4. Run webpack and connect to http://localhost:3000  (if running in chrome, disable metamask)
+   npm run start
 
