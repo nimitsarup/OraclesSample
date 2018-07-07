@@ -3,6 +3,7 @@ import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
 
 contract OraclizeTest is usingOraclize {
 
+    // Need the id's to identify which query invoked the callback
     bytes32 private ethQueryId;
     bytes32 private weatherQueryId;
     bytes32 private exchRateQueryId;
@@ -84,7 +85,7 @@ contract OraclizeTest is usingOraclize {
             emit LogInfo("Oraclize query was sent, standing by for the answer..");
 
             // Using XPath to to fetch the right element in the JSON response
-            weatherQueryId = oraclize_query(20, "URL", "json(http://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=858ac6bf091c34a606c2f3e881951295).main");
+            weatherQueryId = oraclize_query(20, "URL", "json(http://api.openweathermap.org/data/2.5/weather?q=London,uk&APPID=WEATHERMAP_APP_ID).main");
         }
     }
 
@@ -98,7 +99,7 @@ contract OraclizeTest is usingOraclize {
             emit LogInfo("Oraclize query was sent, standing by for the answer..");
 
             // Using XPath to to fetch the right element in the JSON response
-            exchRateQueryId = oraclize_query(20, "URL", "json(http://data.fixer.io/api/latest?access_key=d767581739b8def11666ac8528b927db&symbols=GBP,EUR).rates.GBP");
+            exchRateQueryId = oraclize_query(20, "URL", "json(http://data.fixer.io/api/latest?access_key=FIXER_APP_ID&symbols=GBP,EUR).rates.GBP");
         }
     }
 
