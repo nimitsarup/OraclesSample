@@ -3,12 +3,11 @@ import "installed_contracts/oraclize-api/contracts/usingOraclize.sol";
 
 contract OraclizeTest is usingOraclize {
 
-    address owner;
-    string public ETHUSD;
+    bytes32 private ethQueryId;
+    bytes32 private weatherQueryId;
+    bytes32 private exchRateQueryId;
 
-    bytes32 ethQueryId;
-    bytes32 weatherQueryId;
-    bytes32 exchRateQueryId;
+    address owner;
 
     event LogInfo(string description);
     event LogPriceUpdate(string price);
@@ -24,7 +23,7 @@ contract OraclizeTest is usingOraclize {
 
         emit LogUpdate(owner, address(this).balance);
 
-        // Replace the next line with your version:
+        // OAR coming from ethereum-bridge
         OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
 
         oraclize_setProof(proofType_TLSNotary | proofStorage_IPFS);
@@ -40,7 +39,6 @@ contract OraclizeTest is usingOraclize {
     function getBalance()
     public
     returns (uint _balance) {
-        emit LogInfo("getBalance");
         return address(this).balance;
     }
 
@@ -74,6 +72,7 @@ contract OraclizeTest is usingOraclize {
             ethQueryId = oraclize_query(20, "URL", "json(https://api.coinbase.com/v2/prices/ETH-USD/spot).data.amount");
         }
     }
+
 
     function updateWeather()
     payable
