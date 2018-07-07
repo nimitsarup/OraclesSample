@@ -1,3 +1,5 @@
+This is a very simple oracles project with a single page frontend to display data returned by the smart contract.
+
 Steps to run project:
 1. npm install
 
