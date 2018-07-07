@@ -16,20 +16,18 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    this.state = { ETHUSD: 0, 
+    this.state = {  
       web3: null, 
-      loadingETH: false, 
+      ETHUSD: 0,
       Weather: '', 
-      loadingWeather: false,
       ExchRate: '',
-      loadingExchRate: false
+      loadingETH: false, 
+      loadingWeather: false,
+      loadingExchRate: false  
     };
   }
 
   componentWillMount() {
-    // Get network provider and web3 instance.
-    // See utils/getWeb3 for more info.
-
     getWeb3
     .then(results => {
       this.setState({ web3: results.web3 });
@@ -43,12 +41,6 @@ class App extends Component {
   }
 
   instantiateContract() {
-    /*
-     * SMART CONTRACT EXAMPLE
-     *
-     * Normally these functions would be called in the context of a
-     * state management library, but for convenience I've placed them here.
-     */
 
     const contract = require('truffle-contract');
     const simpleStorage = contract(OracleContract);
@@ -73,9 +65,9 @@ class App extends Component {
 
   addEventListeners = (instance) => {
     var LogCreated = instance.LogUpdate({},{fromBlock: 0, toBlock: 'latest'});
-    var LogPriceUpdate = instance.LogPriceUpdate({},{fromBlock: 0, toBlock: 'latest'});
     var LogInfo = instance.LogInfo({},{fromBlock: 0, toBlock: 'latest'});
-
+    
+    var LogPriceUpdate = instance.LogPriceUpdate({},{fromBlock: 0, toBlock: 'latest'});
     var LogWeatherUpdate = instance.LogWeatherUpdate({},{fromBlock: 0, toBlock: 'latest'});
     var LogExchRateUpdate = instance.LogExchRateUpdate({},{fromBlock: 0, toBlock: 'latest'});
 
@@ -85,7 +77,7 @@ class App extends Component {
       if(!err){
         console.log("ETHUSD ---> " + result.args.price);        
       }else{
-        console.log("ETHUSD --ERR--> " + err);
+        console.log("ETHUSD (Error)---> " + err);
       }
 
       currComp.setState({ ETHUSD: result.args.price, loadingETH: false });
@@ -95,7 +87,7 @@ class App extends Component {
       if(!err){
         console.log("EXCHRATE ---> " + result.args.price);        
       }else{
-        console.log("EXCHRATE --ERR--> " + err);
+        console.log("EXCHRATE (Error)---> " + err);
       }
 
       currComp.setState({ ExchRate: result.args.price, loadingExchRate: false });
@@ -105,7 +97,7 @@ class App extends Component {
       if(!err){
         console.log("Weather ---> " + JSON.stringify(result.args.price));        
       }else{
-        console.log("Weather --ERR--> " + err);
+        console.log("Weather (Error)---> " + err);
       }
 
       currComp.setState({ Weather: JSON.parse(result.args.price), loadingWeather: false });
@@ -134,17 +126,17 @@ class App extends Component {
 
   getETHUSD = () => {
     this.setState({loadingETH: true});
-    theContractInstance.updateETH.sendTransaction({ from: allAccounts[0], gas:6721975, value: 5000000 });
+    theContractInstance.updateETH({ from: allAccounts[0], gas:6721975, value: 1000 });
   }
 
   getWeather = () => {
     this.setState({loadingWeather: true});
-    theContractInstance.updateWeather.sendTransaction({ from: allAccounts[0], gas:6721975, value: 5000000 });
+    theContractInstance.updateWeather({ from: allAccounts[0], gas:6721975, value: 1000 });
   }
 
   getExchRate = () => {
     this.setState({loadingExchRate: true});
-    theContractInstance.updateExchRate.sendTransaction({ from: allAccounts[0], gas:6721975, value: 5000000 });
+    theContractInstance.updateExchRate({ from: allAccounts[0], gas:6721975, value: 1000 });
   }
 
   render() {
